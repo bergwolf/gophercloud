@@ -69,18 +69,26 @@ func Attach(client *gophercloud.ServiceClient, id string, opts AttachOptsBuilder
 	return res
 }
 
-// Attach will detach a volume based on volume id.
-func Detach(client *gophercloud.ServiceClient, id string) DetachResult {
+// DetachSingle will detach a volume based on volume id and attachment id
+func DetachSingle(client *gophercloud.ServiceClient, id, attachmentID string) DetachResult {
 	var res DetachResult
 
 	v := make(map[string]interface{})
-	reqBody := map[string]interface{}{"os-detach": v}
+	if len(attachmentID) != 0 {
+		v["attachment_id"] = attachmentID
+	}
+	reqBody := map[string]interface{}{"os-force_detach": v}
 
 	_, res.Err = client.Post(detachURL(client, id), reqBody, nil, &gophercloud.RequestOpts{
 		OkCodes: []int{202},
 	})
 
 	return res
+}
+
+// Detach will detach a volume based on volume id.
+func Detach(client *gophercloud.ServiceClient, id string) DetachResult {
+	return DetachSingle(client, id, "")
 }
 
 // Reserve will reserve a volume based on volume id.
